@@ -92,7 +92,7 @@ After backfill completion, the following queries were used to verify that 2021 d
 SELECT COUNT(*) AS rows_2021_green
 FROM `calm-snowfall-485503-b4.demo_dataset_ny_taxi.green_tripdata`
 WHERE DATE(lpep_pickup_datetime) BETWEEN '2021-01-01' AND '2021-07-31';
-
+```
 ##6 Manual Taxi Ingestion Flow (10_manual_gcp_taxi)
 
 This flow is designed to execute taxi ingestion manually by explicitly providing the taxi type, year, and month as inputs.
@@ -259,12 +259,12 @@ How many rows are there for the Yellow Taxi data for all CSV files in the year 2
 29,430,127
 
 ##Answer3: 
-
+```sql
 SELECT COUNT(*) AS rows_2020
 FROM `calm-snowfall-485503-b4.demo_dataset_ny_taxi.yellow_tripdata`
 WHERE DATE(tpep_pickup_datetime) >= '2020-01-01'
   AND DATE(tpep_pickup_datetime) < '2021-01-01';
-
+```
   Answer is 24,648,499
 
   ##Question4:
@@ -275,10 +275,11 @@ WHERE DATE(tpep_pickup_datetime) >= '2020-01-01'
 1,342,034
 
  ##Answer4:
+ ```sql
  SELECT COUNT(*) AS total_rows
 FROM `calm-snowfall-485503-b4.demo_dataset_ny_taxi.green_tripdata`
 WHERE EXTRACT(YEAR FROM lpep_pickup_datetime) = 2020;
-
+```
 1,734,051
 
 ##Question5:
@@ -289,10 +290,11 @@ WHERE EXTRACT(YEAR FROM lpep_pickup_datetime) = 2020;
 2,561,031
 
  ##Answer5:
+ ```sql
 SELECT COUNT(*) AS row_count
 FROM `calm-snowfall-485503-b4.demo_dataset_ny_taxi.yellow_tripdata`
 WHERE filename = 'yellow_tripdata_2021-03.csv';
-
+```
 The answer is 1,925,152
 
 ##Question 6: How would you configure the timezone to New York in a Schedule trigger?
