@@ -1,0 +1,165 @@
+id: 08_gcp_taxi
+namespace: zoomcamp
+description: |
+  The CSV Data used in the course: https://github.com/DataTalksClub/nyc-tlc-data/releases
+
+inputs:
+  - id: taxi
+    type: SELECT
+    displayName: Select taxi type
+    values: [yellow, green]
+    defaults: green
+
+  - id: year
+    type: SELECT
+    displayName: Select year
+    values: ["2019", "2020"]
+    defaults: "2019"
+    allowCustomValue: true
+
+  - id: month
+    type: SELECT
+    displayName: Select month
+    values: ["01", "02", "03", "04", "05", "06", "07", "08", "09", "10", "11", "12"]
+    defaults: "01"
+
+variables:
+  file: "{{ inputs.taxi }}_tripdata_{{ inputs.year }}-{{ inputs.month }}.csv"
+  gcs_file: "gs://calm-snowfall-485503-b4-terra-bucket/{{ vars.file }}"
+  table: "demo_dataset_ny_taxi.{{ inputs.taxi }}_tripdata_{{ inputs.year }}_{{ inputs.month }}"
+  data: "{{ outputs.extract.outputFiles[inputs.taxi ~ '_tripdata_' ~ inputs.year ~ '-' ~ inputs.month ~ '.csv'] }}"
+
+tasks:
+  - id: set_label
+    type: io.kestra.plugin.core.execution.Labels
+    labels:
+      file: "{{ render(vars.file) }}"
+      taxi: "{{ inputs.taxi }}"
+
+  - id: extract
+    type: io.kestra.plugin.scripts.shell.Commands
+    outputFiles:
+      - "*.csv"
+    taskRunner:
+      type: io.kestra.plugin.core.runner.Process
+    commands:
+      - wget -qO- https://github.com/DataTalksClub/nyc-tlc-data/releases/download/{{ inputs.taxi }}/{{ render(vars.file) }}.gz | gunzip > {{ render(vars.file) }}
+
+  - id: upload_to_gcs
+    type: io.kestra.plugin.gcp.gcs.Upload
+    from: "{{ render(vars.data) }}"
+    to: "{{ render(vars.gcs_file) }}"
+
+  - id: if_yellow_taxi
+    type: io.kestra.plugin.core.flow.If
+    condition: "{{ inputs.taxi == 'yellow' }}"
+    then:
+      - id: bq_yellow_tripdata
+        type: io.kestra.plugin.gcp.bigquery.Query
+        sql: |
+          CREATE TABLE IF NOT EXISTS `calm-snowfall-485503-b4.demo_dataset_ny_taxi.yellow_tripdata`
+          (
+            unique_row_id BYTES,
+            filename STRING,
+            VendorID STRING,
+            tpep_pickup_datetime TIMESTAMP,
+            tpep_dropoff_datetime TIMESTAMP,
+            passenger_count INTEGER,
+            trip_distance NUMERIC,
+            RatecodeID STRING,
+            store_and_fwd_flag STRING,
+            PULocationID STRING,
+            DOLocationID STRING,
+            payment_type INTEGER,
+            fare_amount NUMERIC,
+            extra NUMERIC,
+            mta_tax NUMERIC,
+            tip_amount NUMERIC,
+            tolls_amount NUMERIC,
+            improvement_surcharge NUMERIC,
+            total_amount NUMERIC,
+            congestion_surcharge NUMERIC
+          )
+          PARTITION BY DATE(tpep_pickup_datetime);
+
+      - id: bq_yellow_ext
+        type: io.kestra.plugin.gcp.bigquery.Query
+        sql: |
+          CREATE OR REPLACE EXTERNAL TABLE `calm-snowfall-485503-b4.{{ vars.table }}_ext`
+          OPTIONS (
+            format = 'CSV',
+            uris = ['{{ vars.gcs_file }}'],
+            skip_leading_rows = 1,
+            ignore_unknown_values = TRUE
+          );
+
+      - id: bq_yellow_tmp
+        type: io.kestra.plugin.gcp.bigquery.Query
+        sql: |
+          CREATE OR REPLACE TABLE `calm-snowfall-485503-b4.{{ vars.table }}`
+          AS
+          SELECT
+            MD5(CONCAT(
+              COALESCE(VendorID, ''),
+              COALESCE(CAST(tpep_pickup_datetime AS STRING), ''),
+              COALESCE(CAST(tpep_dropoff_datetime AS STRING), ''),
+              COALESCE(PULocationID, ''),
+              COALESCE(DOLocationID, '')
+            )) AS unique_row_id,
+            "{{ vars.file }}" AS filename,
+            *
+          FROM `calm-snowfall-485503-b4.{{ vars.table }}_ext`;
+
+      - id: bq_yellow_merge
+        type: io.kestra.plugin.gcp.bigquery.Query
+        sql: |
+          MERGE INTO `calm-snowfall-485503-b4.demo_dataset_ny_taxi.yellow_tripdata` T
+          USING `calm-snowfall-485503-b4.{{ vars.table }}` S
+          ON T.unique_row_id = S.unique_row_id
+          WHEN NOT MATCHED THEN INSERT ROW;
+
+  - id: if_green_taxi
+    type: io.kestra.plugin.core.flow.If
+    condition: "{{ inputs.taxi == 'green' }}"
+    then:
+      - id: bq_green_tripdata
+        type: io.kestra.plugin.gcp.bigquery.Query
+        sql: |
+          CREATE TABLE IF NOT EXISTS `calm-snowfall-485503-b4.demo_dataset_ny_taxi.green_tripdata`
+          (
+            unique_row_id BYTES,
+            filename STRING,
+            VendorID STRING,
+            lpep_pickup_datetime TIMESTAMP,
+            lpep_dropoff_datetime TIMESTAMP,
+            store_and_fwd_flag STRING,
+            RatecodeID STRING,
+            PULocationID STRING,
+            DOLocationID STRING,
+            passenger_count INT64,
+            trip_distance NUMERIC,
+            fare_amount NUMERIC,
+            extra NUMERIC,
+            mta_tax NUMERIC,
+            tip_amount NUMERIC,
+            tolls_amount NUMERIC,
+            ehail_fee NUMERIC,
+            improvement_surcharge NUMERIC,
+            total_amount NUMERIC,
+            payment_type INTEGER,
+            trip_type STRING,
+            congestion_surcharge NUMERIC
+          )
+          PARTITION BY DATE(lpep_pickup_datetime);
+
+  - id: purge_files
+    type: io.kestra.plugin.core.storage.PurgeCurrentExecutionFiles
+    disabled: false
+
+pluginDefaults:
+  - type: io.kestra.plugin.gcp
+    values:
+      serviceAccount: "{{ secret('GCP_SERVICE_ACCOUNT') }}"
+      projectId: "calm-snowfall-485503-b4"
+      location: "northamerica-northeast1"
+      bucket: "calm-snowfall-485503-b4-terra-bucket"

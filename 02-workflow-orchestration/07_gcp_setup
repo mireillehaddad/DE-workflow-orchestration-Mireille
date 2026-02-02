@@ -1,0 +1,50 @@
+id: 07_gcp_setup
+namespace: zoomcamp
+
+tasks:
+  - id: kv_project_id
+    type: io.kestra.plugin.core.kv.Set
+    key: GCP_PROJECT_ID
+    kvType: STRING
+    value: "calm-snowfall-485503-b4"
+    overwrite: true
+
+  - id: kv_location
+    type: io.kestra.plugin.core.kv.Set
+    key: GCP_LOCATION
+    kvType: STRING
+    value: "northamerica-northeast1"
+    overwrite: true
+
+  - id: kv_bucket
+    type: io.kestra.plugin.core.kv.Set
+    key: GCP_BUCKET_NAME
+    kvType: STRING
+    value: "calm-snowfall-485503-b4-terra-bucket"
+    overwrite: true
+
+  - id: kv_dataset
+    type: io.kestra.plugin.core.kv.Set
+    key: GCP_DATASET
+    kvType: STRING
+    value: "demo_dataset_ny_taxi"
+    overwrite: true
+
+  - id: create_gcs_bucket
+    type: io.kestra.plugin.gcp.gcs.CreateBucket
+    ifExists: SKIP
+    storageClass: REGIONAL
+    name: "{{ kv('GCP_BUCKET_NAME') }}"
+
+  - id: create_bq_dataset
+    type: io.kestra.plugin.gcp.bigquery.CreateDataset
+    ifExists: SKIP
+    name: "{{ kv('GCP_DATASET') }}"
+
+pluginDefaults:
+  - type: io.kestra.plugin.gcp
+    values:
+      serviceAccount: "{{ secret('GCP_SERVICE_ACCOUNT') }}"
+      projectId: "{{ kv('GCP_PROJECT_ID') }}"
+      location: "{{ kv('GCP_LOCATION') }}"
+      bucket: "{{ kv('GCP_BUCKET_NAME') }}"
