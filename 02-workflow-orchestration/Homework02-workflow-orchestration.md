@@ -83,6 +83,10 @@ Kestra automatically triggered one execution per month, loading all available 20
 
 After backfill completion, the following queries were used to verify that 2021 data was successfully loaded.
 
+
+---
+
+
 ### Green taxi (Jan–Jul 2021)
 ```sql
 SELECT COUNT(*) AS rows_2021_green
