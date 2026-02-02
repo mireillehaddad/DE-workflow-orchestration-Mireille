@@ -280,7 +280,7 @@ WHERE DATE(tpep_pickup_datetime) >= '2020-01-01'
 FROM `calm-snowfall-485503-b4.demo_dataset_ny_taxi.green_tripdata`
 WHERE EXTRACT(YEAR FROM lpep_pickup_datetime) = 2020;
 ```
-24,648,499
+1,734,051
 
 ##  Question5:
  How many rows are there for the Yellow Taxi data for the March 2021 CSV file?
