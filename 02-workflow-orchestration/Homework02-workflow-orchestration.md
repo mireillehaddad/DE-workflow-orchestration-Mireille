@@ -6,7 +6,7 @@ The solution is implemented using two Kestra flows in the `zoomcamp` namespace:
 
 - `07_gcp_setup`
 - `hw_gcp_taxi_scheduled`
-
+- `10_manual_gcp_taxi`
 ---
 
 ## 1. GCP Setup Flow (`07_gcp_setup`)
@@ -93,7 +93,7 @@ SELECT COUNT(*) AS rows_2021_green
 FROM `calm-snowfall-485503-b4.demo_dataset_ny_taxi.green_tripdata`
 WHERE DATE(lpep_pickup_datetime) BETWEEN '2021-01-01' AND '2021-07-31';
 ```
-## 6 Manual Taxi Ingestion Flow (10_manual_gcp_taxi)
+## 6. Manual Taxi Ingestion Flow (10_manual_gcp_taxi)
 
 This flow is designed to execute taxi ingestion manually by explicitly providing the taxi type, year, and month as inputs.
 It was mainly used to validate data, inspect intermediate results, and answer homework questions that require per-month inspection.
