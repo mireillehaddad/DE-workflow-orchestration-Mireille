@@ -93,7 +93,7 @@ SELECT COUNT(*) AS rows_2021_green
 FROM `calm-snowfall-485503-b4.demo_dataset_ny_taxi.green_tripdata`
 WHERE DATE(lpep_pickup_datetime) BETWEEN '2021-01-01' AND '2021-07-31';
 ```
-##6 Manual Taxi Ingestion Flow (10_manual_gcp_taxi)
+## 6 Manual Taxi Ingestion Flow (10_manual_gcp_taxi)
 
 This flow is designed to execute taxi ingestion manually by explicitly providing the taxi type, year, and month as inputs.
 It was mainly used to validate data, inspect intermediate results, and answer homework questions that require per-month inspection.
@@ -159,7 +159,7 @@ Result:
 green_tripdata_2020-04.csv
 
 
-##Question1: 
+## Question1: 
 
 Within the execution for Yellow Taxi data for the year 2020 and month 12: what is the uncompressed file size (i.e. the output file yellow_tripdata_2020-12.csv of the extract task)?
 128.3 MiB
@@ -167,7 +167,7 @@ Within the execution for Yellow Taxi data for the year 2020 and month 12: what i
 364.7 MiB
 692.6 MiB
 
-##Answer1: 
+## Answer1: 
 
 Steps to verify the uncompressed file size for
 
@@ -230,7 +230,7 @@ A few lines later you will see:
 The answer is 134.5MiB
 
 
-##Question2: 
+## Question2: 
 
 What is the rendered value of the variable file when the inputs taxi is set to green, year is set to 2020, and month is set to 04 during execution?
 {{inputs.taxi}}_tripdata_{{inputs.year}}-{{inputs.month}}.csv
@@ -238,7 +238,7 @@ green_tripdata_2020-04.csv
 green_tripdata_04_2020.csv
 green_tripdata_2020.csv
 
-##Answer2: 
+## Answer2: 
 {{inputs.taxi}}_tripdata_{{inputs.year}}-{{inputs.month}}.csv
 Inputs:
 
@@ -250,7 +250,7 @@ month = 04
 
 green_tripdata_2020-04.csv
 
-##Question3: 
+## Question3: 
 
 How many rows are there for the Yellow Taxi data for all CSV files in the year 2020?
 13,537.299
@@ -258,7 +258,7 @@ How many rows are there for the Yellow Taxi data for all CSV files in the year 2
 18,324,219
 29,430,127
 
-##Answer3: 
+## Answer3: 
 ```sql
 SELECT COUNT(*) AS rows_2020
 FROM `calm-snowfall-485503-b4.demo_dataset_ny_taxi.yellow_tripdata`
@@ -267,14 +267,14 @@ WHERE DATE(tpep_pickup_datetime) >= '2020-01-01'
 ```
   Answer is 24,648,499
 
-  ##Question4:
+  ## Question4:
   How many rows are there for the Green Taxi data for all CSV files in the year 2020?
 5,327,301
 936,199
 1,734,051
 1,342,034
 
- ##Answer4:
+ ## Answer4:
  ```sql
  SELECT COUNT(*) AS total_rows
 FROM `calm-snowfall-485503-b4.demo_dataset_ny_taxi.green_tripdata`
@@ -282,14 +282,14 @@ WHERE EXTRACT(YEAR FROM lpep_pickup_datetime) = 2020;
 ```
 1,734,051
 
-##Question5:
+##  Question5:
  How many rows are there for the Yellow Taxi data for the March 2021 CSV file?
 1,428,092
 706,911
 1,925,152
 2,561,031
 
- ##Answer5:
+ ## Answer5:
  ```sql
 SELECT COUNT(*) AS row_count
 FROM `calm-snowfall-485503-b4.demo_dataset_ny_taxi.yellow_tripdata`
@@ -297,13 +297,13 @@ WHERE filename = 'yellow_tripdata_2021-03.csv';
 ```
 The answer is 1,925,152
 
-##Question 6: How would you configure the timezone to New York in a Schedule trigger?
+## Question 6: How would you configure the timezone to New York in a Schedule trigger?
 Add a timezone property set to EST in the Schedule trigger configuration
 Add a timezone property set to America/New_York in the Schedule trigger configuration
 Add a timezone property set to UTC-5 in the Schedule trigger configuration
 Add a location property set to New_York in the Schedule trigger configuration
 
-##Answer 6:
+## Answer 6:
 Add a timezone property set to America/New_York in the Schedule trigger configuration
 
 example: triggers:
